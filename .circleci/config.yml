@@ -35,3 +35,7 @@ workflows:
   build:
     jobs:
       - build APK and Bundle:
+          filters:
+            branches:
+              only:
+                - master
