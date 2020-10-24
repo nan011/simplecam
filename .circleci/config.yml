@@ -10,12 +10,12 @@ jobs:
       - checkout
       - run:
           name: Set gradlew to be executable file
-          command: cd client; chmod +x ./gradlew
+          command: chmod +x ./gradlew
       - run:
           name: Build APK
-          command: cd client; ./gradlew assembleStaging
+          command: ./gradlew assembleStaging
       - store_artifacts:
-          path: ./client/app/build/outputs/apk
+          path: ./app/build/outputs/apk
           destination: apk
 
   build APK and Bundle:
@@ -24,24 +24,24 @@ jobs:
       - checkout
       - run:
           name: Set keystore.properties
-          command: cd ./client; echo -e "KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}\nKEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}\nKEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}" >> key.properties
+          command: echo -e "KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}\nKEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}\nKEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}" >> key.properties
       - run:
           name: Set release.keystore
-          command: cd ./client/app; echo $KEYSTORE_FILE | base64 -d > release.jks
+          command: cd ./app; echo $KEYSTORE_FILE | base64 -d > release.jks
       - run:
           name: Set gradlew to be executable file
           command: cd client; chmod +x ./gradlew
       - run:
           name: Build APK
-          command: cd client; ./gradlew assembleRelease
+          command: ./gradlew assembleRelease
       - run:
           name: Build Bundle
-          command: cd client; ./gradlew bundleRelease
+          command: ./gradlew bundleRelease
       - store_artifacts:
-          path: ./client/app/build/outputs/apk
+          path: ./app/build/outputs/apk
           destination: apk
       - store_artifacts:
-          path: ./client/app/build/outputs/bundle
+          path: ./app/build/outputs/bundle
           destination: bundle
 
 workflows:
