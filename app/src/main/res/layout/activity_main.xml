@@ -1,14 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:justifyContent="center"
-    android:background="@android:color/holo_red_light"
-    app:alignItems="center">
-    <TextView
-        android:layout_width="wrap_content"
+    android:paddingVertical="24dp"
+    android:paddingHorizontal="16dp"
+    app:flexDirection="column">
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="In Development"
-        />
-</com.google.android.flexbox.FlexboxLayout>
+        app:alignItems="center">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_logo"
+            app:layout_maxHeight="40dp"
+            app:layout_maxWidth="40dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16sp"
+            android:fontFamily="@font/dosis_bold"
+            android:text="@string/app_name"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </com.google.android.flexbox.FlexboxLayout>
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16sp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/dosis"
+            android:textColor="@color/colorPrimary"
+            android:textSize="16sp"
+            android:text="Images"
+            />
+    </com.google.android.flexbox.FlexboxLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
