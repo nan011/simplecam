@@ -30,13 +30,16 @@ class CameraActivity : AppCompatActivity() {
             Manifest.permission.READ_EXTERNAL_STORAGE
         )
 
+        private const val CAMERA_FLASH_IS_ON_KEY = "CAMERA_FLASH_IS_ON"
+        private const val CAMERA_USES_FRONT_LENS_KEY = "CAMERA_USES_FRONT_LENS"
         private const val REQUEST_PERMISSION_CODE = 101
 //        private const val IMAGE_GALLERY_REQUEST_CODE = 2001
     }
 
     private var savedImage: File? = null
 
-//    private var flashIsOn: Boolean = false
+    private var flashIsOn = false
+    private var isFrontCamera = false
     private var cameraProvider: ProcessCameraProvider? = null
     private var selectedCamera: CameraSelector? = null
     private var camera: Camera? = null
@@ -57,9 +60,39 @@ class CameraActivity : AppCompatActivity() {
         setListeners()
 
         if (hasCameraPermission()) {
-            openCamera()
+            startCamera()
         } else {
             this.let { ActivityCompat.requestPermissions(it, PERMISSIONS, REQUEST_PERMISSION_CODE) }
+        }
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        flashIsOn = savedInstanceState.getBoolean(CAMERA_FLASH_IS_ON_KEY)
+        isFrontCamera = savedInstanceState.getBoolean(CAMERA_USES_FRONT_LENS_KEY)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(CAMERA_FLASH_IS_ON_KEY, flashIsOn)
+        outState.putBoolean(CAMERA_USES_FRONT_LENS_KEY, isFrontCamera)
+    }
+
+    private fun turnFlash(shouldTurnOnFlash: Boolean) {
+        flashIsOn = shouldTurnOnFlash
+        if (camera!!.cameraInfo.hasFlashUnit()) {
+            camera!!.cameraControl.enableTorch(flashIsOn)
+        } else {
+            Toast.makeText(this, "Unable to use a flash", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun selectCamera(shouldUseFrontCamera: Boolean): CameraSelector {
+        isFrontCamera = shouldUseFrontCamera
+        return if (isFrontCamera) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        } else {
+            CameraSelector.DEFAULT_BACK_CAMERA
         }
     }
 
@@ -72,14 +105,25 @@ class CameraActivity : AppCompatActivity() {
             takePicture()
         }
 
-//        flashButton.setOnClickListener {
-//            if (camera!!.cameraInfo.hasFlashUnit()) {
-//                flashIsOn = !flashIsOn
-//                camera!!.cameraControl.enableTorch(flashIsOn)
-//            } else {
-//                Toast.makeText(this, "Unable to use flash", Toast.LENGTH_LONG).show()
-//            }
-//        }
+        flash.setOnClickListener {
+            if (camera!!.cameraInfo.hasFlashUnit()) {
+                turnFlash(!flashIsOn)
+            } else {
+                Toast.makeText(this, "Unable to use flash", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        cameraSwitcher.setOnClickListener {
+            setCameraCycles(
+                selectedCamera = selectCamera(!isFrontCamera),
+                imagePreview = Preview
+                    .Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(viewFinder.createSurfaceProvider())
+                    },
+            )
+        }
     }
 
     /**
@@ -103,89 +147,66 @@ class CameraActivity : AppCompatActivity() {
      * Setup camera and integrate it to the surface
      *
      */
-    private fun openCamera() {
+    private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
             // Used to bind life-cycle of camera
             cameraProvider = cameraProviderFuture.get()
 
-            // Set camera preview
-            imagePreview = Preview
-                .Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(viewFinder.createSurfaceProvider())
-                }
-
-            // Set image capture
-            imageCapture = ImageCapture.Builder().build()
-
-            // Select back camera
-            selectedCamera = CameraSelector.DEFAULT_BACK_CAMERA
-
-            setCameraCycles()
+            setCameraCycles(
+                // Select back camera
+                selectedCamera = selectCamera(false),
+                // Set camera preview
+                imagePreview = Preview
+                    .Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(viewFinder.createSurfaceProvider())
+                    },
+                // Set image capture
+                imageCapture = ImageCapture.Builder().build()
+            )
         }, ContextCompat.getMainExecutor(this))
     }
 
-    /**
-     * Set all parts of camera in correct order of cycle
-     *
-     */
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setCameraCycles() {
-        if (cameraProvider == null || selectedCamera == null || imagePreview == null || imageCapture == null) return
+    private fun setCameraCycles(
+        selectedCamera: CameraSelector? = null,
+        imagePreview: Preview? = null,
+        imageCapture: ImageCapture? = null,
+    ) {
+        if (cameraProvider == null) return
+
+        if (selectedCamera != null) {
+            this.selectedCamera = selectedCamera
+        }
+
+        if (imagePreview != null) {
+            this.imagePreview = imagePreview
+            println("test")
+        }
+
+        if (imageCapture != null) {
+            this.imageCapture = imageCapture
+        }
+
+        if (this.selectedCamera == null || this.imagePreview == null || this.imageCapture == null) {
+            return
+        }
 
         try {
             cameraProvider!!.unbindAll()
             camera = cameraProvider!!.bindToLifecycle(
                 this,
-                selectedCamera!!,
-                imagePreview,
-                imageCapture,
+                this.selectedCamera!!,
+                this.imagePreview,
+                this.imageCapture,
             )
         } catch (e: Exception) {
             // All exception
-            Toast.makeText(this, "Something is wrong", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Something goes wrong", Toast.LENGTH_LONG).show()
             e.printStackTrace()
         }
-
-//        // Set tap-to-focus handler
-//        cameraView.afterMeasured {
-//            cameraView.setOnTouchListener { _, event ->
-//                return@setOnTouchListener when (event.action) {
-//                    MotionEvent.ACTION_DOWN -> {
-////                        println("down")
-//                        true
-//                    }
-//                    MotionEvent.ACTION_UP -> {
-////                        println("up")
-//                        val factory: MeteringPointFactory = SurfaceOrientedMeteringPointFactory(
-//                            cameraView.width.toFloat(), cameraView.height.toFloat()
-//                        )
-////                        println("Width ${event.x}")
-////                        println("Width ${event.y}")
-//                        val autoFocusPoint = factory.createPoint(event.x, event.y)
-//                        try {
-//                            camera?.cameraControl?.startFocusAndMetering(
-//                                FocusMeteringAction.Builder(
-//                                    autoFocusPoint,
-//                                    FocusMeteringAction.FLAG_AF
-//                                ).apply {
-//                                    println("Focus")
-//                                    // focus only when the user tap the preview
-//                                    disableAutoCancel()
-//                                }.build()
-//                            )
-//                        } catch (e: CameraInfoUnavailableException) {
-//                            Toast.makeText(this@CameraActivity, "cannot access camera", Toast.LENGTH_LONG).show()
-//                        }
-//                        true
-//                    }
-//                    else -> false // Unhandled event.
-//                }
-//            }
-//        }
     }
 
     /**
@@ -267,7 +288,7 @@ class CameraActivity : AppCompatActivity() {
             ).show()
             finish()
         } else {
-            openCamera()
+            startCamera()
         }
     }
 }
