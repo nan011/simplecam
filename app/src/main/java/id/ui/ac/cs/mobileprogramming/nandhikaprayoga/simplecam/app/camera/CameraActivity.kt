@@ -2,6 +2,8 @@ package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.camera
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -33,7 +35,8 @@ class CameraActivity : AppCompatActivity() {
         private const val CAMERA_FLASH_IS_ON_KEY = "CAMERA_FLASH_IS_ON"
         private const val CAMERA_USES_FRONT_LENS_KEY = "CAMERA_USES_FRONT_LENS"
         private const val REQUEST_PERMISSION_CODE = 101
-//        private const val IMAGE_GALLERY_REQUEST_CODE = 2001
+
+        const val RESULT_IMAGE_PATH_KEY = "RESULT_IMAGE_PATH"
     }
 
     private var savedImage: File? = null
@@ -70,6 +73,7 @@ class CameraActivity : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         flashIsOn = savedInstanceState.getBoolean(CAMERA_FLASH_IS_ON_KEY)
         isFrontCamera = savedInstanceState.getBoolean(CAMERA_USES_FRONT_LENS_KEY)
+        turnFlash(flashIsOn)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -183,7 +187,6 @@ class CameraActivity : AppCompatActivity() {
 
         if (imagePreview != null) {
             this.imagePreview = imagePreview
-            println("test")
         }
 
         if (imageCapture != null) {
@@ -202,9 +205,14 @@ class CameraActivity : AppCompatActivity() {
                 this.imagePreview,
                 this.imageCapture,
             )
+            camera!!.cameraControl.enableTorch(this.flashIsOn)
         } catch (e: Exception) {
             // All exception
-            Toast.makeText(this, "Something goes wrong", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Something goes wrong",
+                Toast.LENGTH_LONG,
+            ).show()
             e.printStackTrace()
         }
     }
@@ -250,14 +258,21 @@ class CameraActivity : AppCompatActivity() {
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    savedImage = takenImage
+                    Toast.makeText(
+                        this@CameraActivity,
+                        "Saved",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    val returnIntent = Intent()
+                    returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, takenImage.path)
+                    setResult(Activity.RESULT_OK, returnIntent)
                     finish()
                 }
 
                 override fun onError(exception: ImageCaptureException) {
                     Toast.makeText(
                         this@CameraActivity,
-                        "Failed to take a picture, try again",
+                        "Unable to take a picture, please try again",
                         Toast.LENGTH_LONG
                     ).show()
                     exception.printStackTrace()
@@ -292,14 +307,3 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 }
-
-//inline fun PreviewView.afterMeasured(crossinline block: () -> Unit) {
-//    viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-//        override fun onGlobalLayout() {
-//            if (measuredWidth > 0 && measuredHeight > 0) {
-//                viewTreeObserver.removeOnGlobalLayoutListener(this)
-//                block()
-//            }
-//        }
-//    })
-//}
