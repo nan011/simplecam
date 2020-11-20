@@ -3,6 +3,7 @@
 
     <uses-feature android:name="android.hardware.camera.any" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="false"
@@ -21,6 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".app.camera.CameraActivity" />
+        <activity android:name=".app.preview.ImagePreviewActivity" />
     </application>
 
 </manifest>
