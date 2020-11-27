@@ -1,6 +1,5 @@
 package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.main
 
-import android.content.Context
 import android.content.Intent
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -9,25 +8,21 @@ import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.preview.ImagePreviewActivity
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.model.entities.image.Image
 
 
 class ImageListAdapter(
-    context: Context,
-    imagePaths: ArrayList<String>,
-): RecyclerView.Adapter<ImageListAdapter.ViewHolder>() {
-    private var imagePaths = ArrayList<String>()
-    private var mContext: Context
+    activity: AppCompatActivity,
+    private val images: ArrayList<Image>,
+) : RecyclerView.Adapter<ImageListAdapter.ViewHolder>() {
+    private var mActivity = activity
 
-    init {
-        this.imagePaths = imagePaths
-        this.mContext = context
-    }
-
-    class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView = itemView.findViewById(R.id.mainImageView) as ImageView
     }
 
@@ -42,9 +37,9 @@ class ImageListAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         Glide
-            .with(mContext)
+            .with(mActivity)
             .asBitmap()
-            .load(imagePaths[position])
+            .load(images[position].imagePath)
             .into(holder.imageView)
 
         val isFirstItem = position == 0
@@ -53,7 +48,7 @@ class ImageListAdapter(
             val gap = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP,
                 16F,
-                mContext.resources.displayMetrics
+                mActivity.resources.displayMetrics
             ).toInt()
 
             val marginParams = MarginLayoutParams(holder.imageView.layoutParams)
@@ -70,13 +65,17 @@ class ImageListAdapter(
         }
 
         holder.imageView.setOnClickListener {
-            val imagePreviewIntent = Intent(mContext, ImagePreviewActivity::class.java)
-            imagePreviewIntent.putExtra("IMAGE_PATH", imagePaths[position])
-            mContext.startActivity(imagePreviewIntent)
+            val imagePreviewIntent = Intent(mActivity, ImagePreviewActivity::class.java)
+            imagePreviewIntent.putExtra(ImagePreviewActivity.ARG_IMAGE_ID, images[position].id)
+            imagePreviewIntent.putExtra(
+                ImagePreviewActivity.ARG_IMAGE_PATH,
+                images[position].imagePath
+            )
+            mActivity.startActivityForResult(imagePreviewIntent, MainActivity.REQUEST_PREVIEW_IMAGE)
         }
     }
 
     override fun getItemCount(): Int {
-        return imagePaths.size
+        return images.size
     }
 }

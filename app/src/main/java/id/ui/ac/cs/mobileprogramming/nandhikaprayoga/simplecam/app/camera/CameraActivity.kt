@@ -1,7 +1,6 @@
 package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.camera
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,6 +15,9 @@ import androidx.core.content.ContextCompat
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Utility
 import kotlinx.android.synthetic.main.activity_camera.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,8 +41,6 @@ class CameraActivity : AppCompatActivity() {
         const val RESULT_IMAGE_PATH_KEY = "RESULT_IMAGE_PATH"
     }
 
-    private var savedImage: File? = null
-
     private var flashIsOn = false
     private var isFrontCamera = false
     private var cameraProvider: ProcessCameraProvider? = null
@@ -63,7 +63,9 @@ class CameraActivity : AppCompatActivity() {
         setListeners()
 
         if (hasCameraPermission()) {
-            startCamera()
+            startCamera(
+                selectedCamera = selectCamera(true)
+            )
         } else {
             this.let { ActivityCompat.requestPermissions(it, PERMISSIONS, REQUEST_PERMISSION_CODE) }
         }
@@ -73,7 +75,6 @@ class CameraActivity : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         flashIsOn = savedInstanceState.getBoolean(CAMERA_FLASH_IS_ON_KEY)
         isFrontCamera = savedInstanceState.getBoolean(CAMERA_USES_FRONT_LENS_KEY)
-        turnFlash(flashIsOn)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -105,6 +106,10 @@ class CameraActivity : AppCompatActivity() {
      *
      */
     private fun setListeners() {
+        backButton.setOnClickListener {
+            this.onBackPressed()
+        }
+
         capture.setOnClickListener {
             takePicture()
         }
@@ -113,19 +118,17 @@ class CameraActivity : AppCompatActivity() {
             if (camera!!.cameraInfo.hasFlashUnit()) {
                 turnFlash(!flashIsOn)
             } else {
-                Toast.makeText(this, "Unable to use flash", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    resources.getString(R.string.cameraactivity_error_flash),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
 
         cameraSwitcher.setOnClickListener {
-            setCameraCycles(
+            startCamera(
                 selectedCamera = selectCamera(!isFrontCamera),
-                imagePreview = Preview
-                    .Builder()
-                    .build()
-                    .also {
-                        it.setSurfaceProvider(viewFinder.createSurfaceProvider())
-                    },
             )
         }
     }
@@ -151,70 +154,61 @@ class CameraActivity : AppCompatActivity() {
      * Setup camera and integrate it to the surface
      *
      */
-    private fun startCamera() {
+    private fun startCamera(
+        selectedCamera: CameraSelector? = null,
+        imagePreview: Preview? = null,
+        imageCapture: ImageCapture? = null,
+    ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
             // Used to bind life-cycle of camera
             cameraProvider = cameraProviderFuture.get()
 
-            setCameraCycles(
-                // Select back camera
-                selectedCamera = selectCamera(false),
-                // Set camera preview
-                imagePreview = Preview
+            if (selectedCamera == null) {
+                this@CameraActivity.selectedCamera = selectCamera(false)
+            }
+            println(this.selectedCamera)
+
+            if (imagePreview == null) {
+                this.imagePreview = Preview
                     .Builder()
                     .build()
                     .also {
                         it.setSurfaceProvider(viewFinder.createSurfaceProvider())
-                    },
-                // Set image capture
-                imageCapture = ImageCapture.Builder().build()
-            )
+                    }
+            }
+
+            if (imageCapture == null) {
+                this.imageCapture = ImageCapture.Builder().build()
+            }
+
+            try {
+                cameraProvider!!.unbindAll()
+                camera = cameraProvider!!.bindToLifecycle(
+                    this,
+                    this.selectedCamera!!,
+                    this.imagePreview,
+                    this.imageCapture,
+                )
+                camera!!.cameraControl.enableTorch(this.flashIsOn)
+            } catch (e: Exception) {
+                // All exception
+                Toast.makeText(
+                    this,
+                    resources.getString(R.string.cameraactivity_error_failsetup),
+                    Toast.LENGTH_LONG,
+                ).show()
+                e.printStackTrace()
+            }
+
+
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun setCameraCycles(
-        selectedCamera: CameraSelector? = null,
-        imagePreview: Preview? = null,
-        imageCapture: ImageCapture? = null,
-    ) {
-        if (cameraProvider == null) return
-
-        if (selectedCamera != null) {
-            this.selectedCamera = selectedCamera
-        }
-
-        if (imagePreview != null) {
-            this.imagePreview = imagePreview
-        }
-
-        if (imageCapture != null) {
-            this.imageCapture = imageCapture
-        }
-
-        if (this.selectedCamera == null || this.imagePreview == null || this.imageCapture == null) {
-            return
-        }
-
-        try {
-            cameraProvider!!.unbindAll()
-            camera = cameraProvider!!.bindToLifecycle(
-                this,
-                this.selectedCamera!!,
-                this.imagePreview,
-                this.imageCapture,
-            )
-            camera!!.cameraControl.enableTorch(this.flashIsOn)
-        } catch (e: Exception) {
-            // All exception
-            Toast.makeText(
-                this,
-                "Something goes wrong",
-                Toast.LENGTH_LONG,
-            ).show()
-            e.printStackTrace()
-        }
+    override fun onBackPressed() {
+        setResult(Activity.RESULT_CANCELED)
+        super.onBackPressed()
     }
 
     /**
@@ -223,62 +217,66 @@ class CameraActivity : AppCompatActivity() {
      *
      */
     private fun takePicture() {
-        // Don't take a picture if imageCapture have not been initialized
-        if (imageCapture == null) return
+        CoroutineScope(Dispatchers.IO).launch {
+            println(imageCapture)
+            // Don't take a picture if imageCapture have not been initialized
+            if (imageCapture == null) return@launch
 
-        // Get media folder
-        val mediaFolder = File(
-            "${
-                Utility.getOutputDirectory(
-                    this@CameraActivity
-                ).path
-            }/images"
-        )
+            println("pass")
+            // Get media folder
+            val mediaFolder = File(
+                "${
+                    Utility.getOutputDirectory(
+                        this@CameraActivity
+                    ).path
+                }/images"
+            )
 
-        // Set file name
-        val fileName = "${
-            SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss",
-                Locale.US
-            ).format(System.currentTimeMillis())
-        }.jpg"
+            // Set file name
+            val fileName = "${
+                SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.US
+                ).format(System.currentTimeMillis())
+            }.jpg"
 
-        // Check whether the media folder exists or not, if doesn't then create the folder
-        if (!mediaFolder.exists()) {
-            mediaFolder.mkdirs()
-        }
-        val takenImage = File(mediaFolder, fileName)
-
-        // Set an empty file as output of image capturing
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(takenImage).build()
-
-        // Create an image in given file
-        imageCapture!!.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    Toast.makeText(
-                        this@CameraActivity,
-                        "Saved",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    val returnIntent = Intent()
-                    returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, takenImage.path)
-                    setResult(Activity.RESULT_OK, returnIntent)
-                    finish()
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(
-                        this@CameraActivity,
-                        "Unable to take a picture, please try again",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    exception.printStackTrace()
-                }
+            // Check whether the media folder exists or not, if doesn't then create the folder
+            if (!mediaFolder.exists()) {
+                mediaFolder.mkdirs()
             }
-        )
+            val takenImage = File(mediaFolder, fileName)
+
+            // Set an empty file as output of image capturing
+            val outputOptions = ImageCapture.OutputFileOptions.Builder(takenImage).build()
+
+            // Create an image in given file
+            imageCapture!!.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(this@CameraActivity),
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        Toast.makeText(
+                            this@CameraActivity,
+                            resources.getString(R.string.cameraactivity_success_takepicture),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        val returnIntent = Intent()
+                        returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, takenImage.path)
+                        setResult(Activity.RESULT_OK, returnIntent)
+                        finish()
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        Toast.makeText(
+                            this@CameraActivity,
+                            resources.getString(R.string.cameraactivity_error_takepicture),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        exception.printStackTrace()
+                    }
+                }
+            )
+        }
     }
 
     /**
@@ -298,7 +296,7 @@ class CameraActivity : AppCompatActivity() {
         if (requestCode == REQUEST_PERMISSION_CODE && grantResults[0] == PackageManager.PERMISSION_DENIED) {
             Toast.makeText(
                 this@CameraActivity,
-                "Sorry, camera permission is needed",
+                resources.getString(R.string.cameraactivity_error_nopermission),
                 Toast.LENGTH_LONG
             ).show()
             finish()

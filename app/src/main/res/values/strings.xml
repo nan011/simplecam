@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">SimpleCam</string>
+    <string name="mainactivity_date_today">Today</string>
+    <string name="mainactivity_date_yesterday">Yesterday</string>
+    <string name="cameraactivity_error_flash">Unable to use flash</string>
+    <string name="cameraactivity_error_switchcam">Unable to switch camera</string>
+    <string name="cameraactivity_error_takepicture">Unable to take a picture</string>
+    <string name="cameraactivity_error_nopermission">Sorry, camera permission is needed</string>
+    <string name="cameraactivity_error_failsetup">Failed to setup camera</string>
+    <string name="cameraactivity_success_takepicture">Saved</string>
+    <string name="imagepreview_button_delete">Delete</string>
+    <string name="mainactivity_error_loadtolong">Unable to load images from database, please restart your application</string>
 </resources>

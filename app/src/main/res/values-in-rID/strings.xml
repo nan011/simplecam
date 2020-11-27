@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SimpleCam</string>
+    <string name="mainactivity_date_today">Hari ini</string>
+    <string name="mainactivity_date_yesterday">Kemarin</string>
+    <string name="cameraactivity_error_flash">Flash tidak bisa digunakan</string>
+    <string name="cameraactivity_error_switchcam">Tidak dapat untuk merubah kamera</string>
+    <string name="cameraactivity_error_takepicture">Tidak dapat mengambil gambar</string>
+    <string name="cameraactivity_error_nopermission">Otoritas penggunaan kamera dibutuhkan</string>
+    <string name="cameraactivity_error_failsetup">Konfigurasi kamera gagal</string>
+    <string name="cameraactivity_success_takepicture">Tersimpan</string>
+    <string name="imagepreview_button_delete">Hapus</string>
+    <string name="mainactivity_error_loadtolong">Tidak dapat memuat gambar dari database, mohon buka kembali aplikasi</string>
+</resources>

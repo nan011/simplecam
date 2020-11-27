@@ -1,32 +1,26 @@
 package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.main
 
-import android.content.Context
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.FlexboxLayout
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.model.entities.image.Image
 
 
 class ImageContainerAdapter(
-    context: Context,
-    private var names: ArrayList<String>,
-    imageContainer: ArrayList<ArrayList<String>>
-): RecyclerView.Adapter<ImageContainerAdapter.ViewHolder>() {
-    private var imageContainer = ArrayList<ArrayList<String>>()
-    private var mContext: Context
+    activity: AppCompatActivity,
+    private var imageContainer: ArrayList<Pair<String, ArrayList<Image>>>
+) : RecyclerView.Adapter<ImageContainerAdapter.ViewHolder>() {
+    private var mActivity = activity
 
-    init {
-        this.imageContainer = imageContainer
-        this.mContext = context
-    }
-
-    class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageRowParent = itemView.findViewById(R.id.imageRowParent) as FlexboxLayout
         val nameView = itemView.findViewById(R.id.nameView) as TextView
         val imageRowRecyclerView = itemView.findViewById(R.id.imageRow) as RecyclerView
@@ -43,12 +37,12 @@ class ImageContainerAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val linearLayoutManager = LinearLayoutManager(
-            mContext,
+            mActivity,
             LinearLayoutManager.HORIZONTAL,
             false
         )
-        val imageListAdapter = ImageListAdapter(mContext, imageContainer[position])
-        holder.nameView.text = names[position]
+        val imageListAdapter = ImageListAdapter(mActivity, imageContainer[position].second)
+        holder.nameView.text = imageContainer[position].first
         holder.imageRowRecyclerView.layoutManager = linearLayoutManager
         holder.imageRowRecyclerView.adapter = imageListAdapter
 
@@ -58,7 +52,7 @@ class ImageContainerAdapter(
             val gap = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP,
                 48F,
-                mContext.resources.displayMetrics
+                mActivity.resources.displayMetrics
             ).toInt()
 
             val marginParams = ViewGroup.MarginLayoutParams(holder.imageRowParent.layoutParams)
