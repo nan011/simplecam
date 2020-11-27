@@ -1,11 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam">
 
     <uses-feature android:name="android.hardware.camera.any" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="false"
+        android:hardwareAccelerated="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -21,6 +26,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".app.camera.CameraActivity" />
+        <activity android:name=".app.preview.ImagePreviewActivity" />
+        <service android:name=".services.SyncService" />
     </application>
 
 </manifest>

@@ -9,8 +9,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.view.Window
 import android.view.WindowManager
-import androidx.annotation.ColorRes
-import androidx.core.content.ContextCompat
+import com.google.gson.Gson
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
 import java.io.*
 
@@ -140,6 +139,10 @@ class Utility {
             } finally {
                 outStream?.close()
             }
+        }
+
+        fun stringifyJSON(data: HashMap<String, Any>): String {
+            return Gson().toJson(data).toString()
         }
     }
 }

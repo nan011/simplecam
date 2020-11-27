@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/imageRowParent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginBottom="24sp"
+    app:flexDirection="column">
+    <TextView
+        android:id="@+id/nameView"
+        android:paddingHorizontal="16sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/dosis_bold"
+        android:textSize="16sp"
+        android:text=""
+        android:textColor="@color/gray"
+        android:layout_marginBottom="8sp" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/imageRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" />
+</com.google.android.flexbox.FlexboxLayout>
