@@ -2,5 +2,6 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
         <item>@font/dosis</item>
+        <item>@font/dosis_bold</item>
     </array>
 </resources>
