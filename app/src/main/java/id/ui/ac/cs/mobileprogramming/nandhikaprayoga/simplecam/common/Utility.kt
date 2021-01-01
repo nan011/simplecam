@@ -20,6 +20,10 @@ import java.io.*
  */
 class Utility {
     companion object {
+        init {
+            System.loadLibrary("native-lib")
+        }
+
         /**
          * Hide all notifications on status bar
          * It is helpful to avoid user from notifications and let them to focus on current activity
@@ -144,5 +148,18 @@ class Utility {
         fun stringifyJSON(data: HashMap<String, Any>): String {
             return Gson().toJson(data).toString()
         }
+
+        fun sort(list: Array<Double>): Array<Int> {
+            val temp: IntArray = cppSort(list.toDoubleArray())
+            return Array(temp.size) { temp[it] }
+        }
+
+        /**
+         * Sort in native
+         *
+         * @param list  List of values
+         * @return      List of index as result of sorting (ascending order)
+         */
+        private external fun cppSort(list: DoubleArray): IntArray
     }
 }
