@@ -14,10 +14,6 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class ImageViewModel(val app: Application) : AndroidViewModel(app) {
-    companion object {
-        private const val ACCESS_DATA_MAX_ITERATION = 10
-    }
-
     enum class DateType(val value: String) {
         TODAY("Today"),
         YESTERDAY("Yesterday"),

@@ -169,7 +169,6 @@ class CameraActivity : AppCompatActivity() {
             if (selectedCamera == null) {
                 this@CameraActivity.selectedCamera = selectCamera(false)
             }
-            println(this.selectedCamera)
 
             if (imagePreview == null) {
                 this.imagePreview = Preview
@@ -219,11 +218,9 @@ class CameraActivity : AppCompatActivity() {
      */
     private fun takePicture() {
         CoroutineScope(Dispatchers.IO).launch {
-            println(imageCapture)
             // Don't take a picture if imageCapture have not been initialized
             if (imageCapture == null) return@launch
 
-            println("pass")
             // Get media folder
             val mediaFolder = File(
                 "${

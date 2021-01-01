@@ -19,11 +19,9 @@ class SyncService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         syncJob = CoroutineScope(Dispatchers.IO).launch {
             while (true) {
-                println("In loop")
                 val images = ImageRepository.get(this@SyncService).images.value
                 if (images != null) {
                     for (image in images) {
-                        println(image)
                         val file = File(image.imagePath)
                         if (!file.exists()) {
                             ImageRepository.get(this@SyncService).delete(image.id)
