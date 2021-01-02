@@ -11,4 +11,7 @@
     <string name="cameraactivity_success_takepicture">Tersimpan</string>
     <string name="imagepreview_button_delete">Hapus</string>
     <string name="mainactivity_error_loadtolong">Tidak dapat memuat gambar dari database, mohon buka kembali aplikasi</string>
+    <string name="syncservice_channel_name">Notifikasi Penghapusan</string>
+    <string name="syncservice_channel_description">Salah satu dari fotomu telah dihapus karena terdapat kerusakan</string>
+    <string name="syncservice_notification_title">Terjadi penghapusan foto</string>
 </resources>

@@ -10,4 +10,7 @@
     <string name="cameraactivity_success_takepicture">Saved</string>
     <string name="imagepreview_button_delete">Delete</string>
     <string name="mainactivity_error_loadtolong">Unable to load images from database, please restart your application</string>
+    <string name="syncservice_channel_name">Deletion Notification</string>
+    <string name="syncservice_channel_description">One of your image is no longer can be viewed anymore due corrupt</string>
+    <string name="syncservice_notification_title">Image has been removed</string>
 </resources>
