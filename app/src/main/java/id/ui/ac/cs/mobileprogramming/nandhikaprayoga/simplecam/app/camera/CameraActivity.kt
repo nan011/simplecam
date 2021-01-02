@@ -10,16 +10,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Service
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Utility
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.states.NetworkState
 import kotlinx.android.synthetic.main.activity_camera.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.*
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -253,15 +256,62 @@ class CameraActivity : AppCompatActivity() {
                 ContextCompat.getMainExecutor(this@CameraActivity),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        if (!NetworkState.isOnNetwork) {
+                            this@CameraActivity.goBack(takenImage)
+                            return
+                        }
+
                         Toast.makeText(
                             this@CameraActivity,
-                            resources.getString(R.string.cameraactivity_success_takepicture),
+                            resources.getString(R.string.cameraactivity_saving),
                             Toast.LENGTH_LONG
                         ).show()
-                        val returnIntent = Intent()
-                        returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, takenImage.path)
-                        setResult(Activity.RESULT_OK, returnIntent)
-                        finish()
+
+                        // Compress
+                        CoroutineScope(Dispatchers.IO).launch {
+                            Service.sendRequest(
+                                object : Callback {
+                                    override fun onFailure(call: Call, e: IOException) {
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            Toast.makeText(
+                                                this@CameraActivity,
+                                                "Either the server unable to receive or something goes wrong from you",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    }
+
+                                    override fun onResponse(call: Call, response: Response) {
+                                        if (response.isSuccessful) {
+                                            if (response.code() == 200) {
+                                                val body =
+                                                    Utility.parseJSON(response.body()?.string())
+
+                                                Utility.saveImage(
+                                                    this@CameraActivity,
+                                                    body["dest"].toString()
+                                                ) {
+                                                    it.copyTo(takenImage)
+                                                    goBack(takenImage)
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "http://api.resmush.it/ws.php?qlty=95",
+                                Service.HttpMethod.POST,
+                                MultipartBody.Builder().setType(MultipartBody.FORM)
+                                    .addFormDataPart(
+                                        "files",
+                                        Utility.getBasename(takenImage.path),
+                                        RequestBody.create(
+                                            MediaType.parse("application/octet-stream"),
+                                            takenImage,
+                                        )
+                                    )
+                                    .build(),
+                            )
+                        }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
@@ -274,6 +324,21 @@ class CameraActivity : AppCompatActivity() {
                     }
                 }
             )
+        }
+    }
+
+    private fun goBack(image: File) {
+        CoroutineScope(Dispatchers.Main).launch {
+            Toast.makeText(
+                this@CameraActivity,
+                resources.getString(R.string.cameraactivity_success_takepicture),
+                Toast.LENGTH_LONG
+            ).show()
+
+            val returnIntent = Intent()
+            returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, image.path)
+            setResult(Activity.RESULT_OK, returnIntent)
+            finish()
         }
     }
 

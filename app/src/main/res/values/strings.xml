@@ -13,4 +13,5 @@
     <string name="syncservice_channel_name">Deletion Notification</string>
     <string name="syncservice_channel_description">One of your image is no longer can be viewed anymore due corrupt</string>
     <string name="syncservice_notification_title">Image has been removed</string>
+    <string name="cameraactivity_saving">Saving...</string>
 </resources>

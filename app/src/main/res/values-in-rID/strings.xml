@@ -14,4 +14,5 @@
     <string name="syncservice_channel_name">Notifikasi Penghapusan</string>
     <string name="syncservice_channel_description">Salah satu dari fotomu telah dihapus karena terdapat kerusakan</string>
     <string name="syncservice_notification_title">Terjadi penghapusan foto</string>
+    <string name="cameraactivity_saving">Menyimpan...</string>
 </resources>

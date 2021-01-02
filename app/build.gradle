@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId 'id.ac.ui.cs.mobileprogramming.nandhikaprayoga.simplecam'
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -110,5 +110,12 @@ dependencies {
 
     // Notification
     implementation "com.android.support:support-compat:28.0.0"
+
+    // HTTP Connection
+    implementation 'io.ktor:ktor-client-okhttp:1.3.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // Save image
+    implementation 'com.squareup.picasso:picasso:2.3.2'
 
 }
