@@ -150,7 +150,7 @@ class Utility {
             )
         }
 
-        fun saveImage(context: Context, url: String, onFinish: (File) -> Unit) {
+        fun saveImage(context: Context, url: String, onFinish: (File?) -> Unit) {
             println("url: $url")
             CoroutineScope(Dispatchers.Main).launch {
                 Picasso.with(context).load(url)
@@ -189,11 +189,11 @@ class Utility {
                         }
 
                         override fun onBitmapFailed(errorDrawable: Drawable?) {
-                            println("bitmap failed: $errorDrawable")
+                            onFinish(null)
                         }
 
                         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                            println("prepareload: $placeHolderDrawable")
+                            onFinish(null)
                         }
                     })
             }

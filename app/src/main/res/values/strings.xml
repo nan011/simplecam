@@ -23,4 +23,5 @@
     <string name="permissionreadme_writefile_description">To perfect the camera feature, we need your permission to be able to store your image that you have just taken</string>
     <string name="permissionreadme_internet_title">Internet Permission</string>
     <string name="permissionreadme_internet_description">To make your image has a great quality and low size, we need your permission to the internet, so we can access our service in order to achieve that</string>
+    <string name="cameraactivity_error_failcompress">Either the server unable to receive or something goes wrong from you</string>
 </resources>

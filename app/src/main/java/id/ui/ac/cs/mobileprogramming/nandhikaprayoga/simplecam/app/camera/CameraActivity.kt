@@ -54,6 +54,7 @@ class CameraActivity : AppCompatActivity() {
         Utility.setStatusBarColor(window, Color.BLACK)
         supportActionBar?.hide()
         setContentView(R.layout.activity_camera)
+        startCamera()
         setListeners()
     }
 
@@ -119,7 +120,6 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-
     /**
      * Setup camera and integrate it to the surface
      *
@@ -144,7 +144,7 @@ class CameraActivity : AppCompatActivity() {
                     .Builder()
                     .build()
                     .also {
-                        it.setSurfaceProvider(viewFinder.createSurfaceProvider())
+                        it.setSurfaceProvider(viewFinder.surfaceProvider)
                     }
             }
 
@@ -241,7 +241,7 @@ class CameraActivity : AppCompatActivity() {
                                         CoroutineScope(Dispatchers.Main).launch {
                                             Toast.makeText(
                                                 this@CameraActivity,
-                                                "Either the server unable to receive or something goes wrong from you",
+                                                this@CameraActivity.getString(R.string.cameraactivity_error_failcompress),
                                                 Toast.LENGTH_LONG
                                             ).show()
                                         }
@@ -257,7 +257,7 @@ class CameraActivity : AppCompatActivity() {
                                                     this@CameraActivity,
                                                     body["dest"].toString()
                                                 ) {
-                                                    it.copyTo(takenImage)
+                                                    it?.copyTo(takenImage)
                                                     goBack(takenImage)
                                                 }
                                             }

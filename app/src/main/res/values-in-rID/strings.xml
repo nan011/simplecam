@@ -24,4 +24,5 @@
     <string name="permissionreadme_cameradescription">Fitur kamera pada aplikasi memerlukan alat kamera yang ada di ponsel pintar ini</string>
     <string name="permissionreadme_internet_title">Ijin Internet</string>
     <string name="permissionreadme_internet_description">Untuk mendapatkan hasil gambar yang baik dan ukuran yang kecil, kami mengharapkan untuk diijinkan menggunakan koneksi internet untuk dapat mencapai hal tersebut</string>
+    <string name="cameraactivity_error_failcompress">Server sedang bermasalah atau aplikasi tidak dapat berjalan normal</string>
 </resources>
