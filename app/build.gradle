@@ -18,6 +18,10 @@ android {
     compileSdkVersion 30
     buildToolsVersion "29.0.3"
 
+    dataBinding {
+        enabled = true
+    }
+
     defaultConfig {
         applicationId 'id.ac.ui.cs.mobileprogramming.nandhikaprayoga.simplecam'
         minSdkVersion 23
