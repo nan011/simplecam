@@ -1,13 +1,18 @@
 package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.main
 
+import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.camera.CameraActivity
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.common.PermissionReadmeActivity
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.preview.ImagePreviewActivity
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Utility
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.model.entities.image.Image
@@ -23,11 +28,26 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAKE_PICTURE_REQUEST = 1
         const val REQUEST_PREVIEW_IMAGE = 2
+        private const val REQUEST_PERMISSION_CODE = 101
+
+        private val PERMISSIONS: Array<String> = arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.INTERNET,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
     }
 
     private var imageViewModel: ImageViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (!Utility.hasPermissions(this, PERMISSIONS)) {
+            this.let { ActivityCompat.requestPermissions(it,
+                PERMISSIONS,
+                REQUEST_PERMISSION_CODE,
+            ) }
+        }
+
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         this.registerReceiver(NetworkChangeReceiver(), intentFilter)
 
@@ -94,6 +114,26 @@ class MainActivity : AppCompatActivity() {
             val imageID =
                 data?.getStringExtra(ImagePreviewActivity.RESULT_DELETE_IMAGE_ID) as String
             imageViewModel?.delete(imageID)
+        }
+    }
+
+    /**
+     * Permission result from permission request.
+     *
+     * @param requestCode   Request code
+     * @param permissions   List of permission
+     * @param grantResults  List of granted permission
+     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_PERMISSION_CODE && grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            val permissionReadmeActivity = Intent(this, PermissionReadmeActivity::class.java)
+            startActivity(permissionReadmeActivity)
+            finish()
         }
     }
 }

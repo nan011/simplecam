@@ -1,16 +1,13 @@
 package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.camera
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Service
@@ -32,15 +29,8 @@ import java.util.*
  */
 class CameraActivity : AppCompatActivity() {
     companion object {
-        private val PERMISSIONS: Array<String> = arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-
         private const val CAMERA_FLASH_IS_ON_KEY = "CAMERA_FLASH_IS_ON"
         private const val CAMERA_USES_FRONT_LENS_KEY = "CAMERA_USES_FRONT_LENS"
-        private const val REQUEST_PERMISSION_CODE = 101
 
         const val RESULT_IMAGE_PATH_KEY = "RESULT_IMAGE_PATH"
     }
@@ -65,14 +55,6 @@ class CameraActivity : AppCompatActivity() {
         supportActionBar?.hide()
         setContentView(R.layout.activity_camera)
         setListeners()
-
-        if (hasCameraPermission()) {
-            startCamera(
-                selectedCamera = selectCamera(true)
-            )
-        } else {
-            this.let { ActivityCompat.requestPermissions(it, PERMISSIONS, REQUEST_PERMISSION_CODE) }
-        }
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -137,22 +119,6 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Check whether all needed permission are granted by client or not
-     *
-     */
-    private fun hasCameraPermission(): Boolean {
-        return PERMISSIONS.fold(
-            true,
-            { allPermissions, permission ->
-                allPermissions && this.let {
-                    ActivityCompat.checkSelfPermission(
-                        it, permission
-                    )
-                } == PackageManager.PERMISSION_GRANTED
-            }
-        )
-    }
 
     /**
      * Setup camera and integrate it to the surface
@@ -339,32 +305,6 @@ class CameraActivity : AppCompatActivity() {
             returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, image.path)
             setResult(Activity.RESULT_OK, returnIntent)
             finish()
-        }
-    }
-
-    /**
-     * Permission result from permission request.
-     * For this case, only use to check whether the application could be able to use camera or not.
-     *
-     * @param requestCode   Request code
-     * @param permissions   List of permission
-     * @param grantResults  List of granted permission
-     */
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSION_CODE && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-            Toast.makeText(
-                this@CameraActivity,
-                resources.getString(R.string.cameraactivity_error_nopermission),
-                Toast.LENGTH_LONG
-            ).show()
-            finish()
-        } else {
-            startCamera()
         }
     }
 }

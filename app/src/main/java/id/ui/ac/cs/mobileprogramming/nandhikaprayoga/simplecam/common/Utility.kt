@@ -2,11 +2,13 @@ package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -129,6 +131,23 @@ class Utility {
                 }
             }
             return map
+        }
+
+        /**
+         * Check whether all needed permission are granted by client or not
+         *
+         */
+        fun hasPermissions(context: Context, permissions: Array<String>): Boolean {
+            return permissions.fold(
+                true,
+                { allPermissions, permission ->
+                    allPermissions && this.let {
+                        ActivityCompat.checkSelfPermission(
+                            context, permission
+                        )
+                    } == PackageManager.PERMISSION_GRANTED
+                }
+            )
         }
 
         fun saveImage(context: Context, url: String, onFinish: (File) -> Unit) {

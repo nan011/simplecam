@@ -3,7 +3,14 @@
     package="id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam">
 
     <uses-feature android:name="android.hardware.camera.any" />
+
+
+
     <uses-feature android:glEsVersion="0x00030001" android:required="true" />
+
+
+
+
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -31,6 +38,7 @@
         <activity android:name=".app.main.MainActivity" />
         <activity android:name=".app.camera.CameraActivity" />
         <activity android:name=".app.preview.ImagePreviewActivity" />
+        <activity android:name=".app.common.PermissionReadmeActivity" />
         <service android:name=".services.SyncService" />
     </application>
 

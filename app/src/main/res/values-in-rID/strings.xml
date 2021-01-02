@@ -15,4 +15,13 @@
     <string name="syncservice_channel_description">Salah satu dari fotomu telah dihapus karena terdapat kerusakan</string>
     <string name="syncservice_notification_title">Terjadi penghapusan foto</string>
     <string name="cameraactivity_saving">Menyimpan...</string>
+    <string name="permissionreadme_exit_button">Keluar</string>
+    <string name="permissionreadme_cameratitle">ijin Kamera</string>
+    <string name="permissionreadme_readfile_title">Ijin Mengambil Foto</string>
+    <string name="permissionreadme_readfile_description">Agar dapat memunculkan foto yang telah diambil, maka aplikasi ini perlu ijin untuk dapat membaca file dari directori anda</string>
+    <string name="permissionreadme_writeimage_title">Ijin Menyimpan Foto</string>
+    <string name="permissionreadme_writefile_description">Untuk dapat menggunakan fitur kamera secara keseluruhan, aplikasi mengharapkan dapat diberikan ijin untuk dapat menyimpan gambar yang telah diambil dari kamera</string>
+    <string name="permissionreadme_cameradescription">Fitur kamera pada aplikasi memerlukan alat kamera yang ada di ponsel pintar ini</string>
+    <string name="permissionreadme_internet_title">Ijin Internet</string>
+    <string name="permissionreadme_internet_description">Untuk mendapatkan hasil gambar yang baik dan ukuran yang kecil, kami mengharapkan untuk diijinkan menggunakan koneksi internet untuk dapat mencapai hal tersebut</string>
 </resources>

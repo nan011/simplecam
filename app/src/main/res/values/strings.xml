@@ -14,4 +14,13 @@
     <string name="syncservice_channel_description">One of your image is no longer can be viewed anymore due corrupt</string>
     <string name="syncservice_notification_title">Image has been removed</string>
     <string name="cameraactivity_saving">Saving...</string>
+    <string name="permissionreadme_exit_button">Exit</string>
+    <string name="permissionreadme_cameratitle">Camera Permission</string>
+    <string name="permissionreadme_cameradescription">To use of camera feature that we provide, we need you to allow the application to access a camera from your phone</string>
+    <string name="permissionreadme_readfile_title">Read File Permission</string>
+    <string name="permissionreadme_readfile_description">Because the application has a feature to show images, then we need your cooperation to allow the permission</string>
+    <string name="permissionreadme_writeimage_title">Write Image Permission</string>
+    <string name="permissionreadme_writefile_description">To perfect the camera feature, we need your permission to be able to store your image that you have just taken</string>
+    <string name="permissionreadme_internet_title">Internet Permission</string>
+    <string name="permissionreadme_internet_description">To make your image has a great quality and low size, we need your permission to the internet, so we can access our service in order to achieve that</string>
 </resources>
