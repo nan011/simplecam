@@ -1,25 +1,25 @@
 package id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.app.camera
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Service
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Utility
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.states.NetworkState
 import kotlinx.android.synthetic.main.activity_camera.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.*
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,15 +29,8 @@ import java.util.*
  */
 class CameraActivity : AppCompatActivity() {
     companion object {
-        private val PERMISSIONS: Array<String> = arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-
         private const val CAMERA_FLASH_IS_ON_KEY = "CAMERA_FLASH_IS_ON"
         private const val CAMERA_USES_FRONT_LENS_KEY = "CAMERA_USES_FRONT_LENS"
-        private const val REQUEST_PERMISSION_CODE = 101
 
         const val RESULT_IMAGE_PATH_KEY = "RESULT_IMAGE_PATH"
     }
@@ -61,15 +54,8 @@ class CameraActivity : AppCompatActivity() {
         Utility.setStatusBarColor(window, Color.BLACK)
         supportActionBar?.hide()
         setContentView(R.layout.activity_camera)
+        startCamera()
         setListeners()
-
-        if (hasCameraPermission()) {
-            startCamera(
-                selectedCamera = selectCamera(true)
-            )
-        } else {
-            this.let { ActivityCompat.requestPermissions(it, PERMISSIONS, REQUEST_PERMISSION_CODE) }
-        }
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -135,23 +121,6 @@ class CameraActivity : AppCompatActivity() {
     }
 
     /**
-     * Check whether all needed permission are granted by client or not
-     *
-     */
-    private fun hasCameraPermission(): Boolean {
-        return PERMISSIONS.fold(
-            true,
-            { allPermissions, permission ->
-                allPermissions && this.let {
-                    ActivityCompat.checkSelfPermission(
-                        it, permission
-                    )
-                } == PackageManager.PERMISSION_GRANTED
-            }
-        )
-    }
-
-    /**
      * Setup camera and integrate it to the surface
      *
      */
@@ -169,14 +138,13 @@ class CameraActivity : AppCompatActivity() {
             if (selectedCamera == null) {
                 this@CameraActivity.selectedCamera = selectCamera(false)
             }
-            println(this.selectedCamera)
 
             if (imagePreview == null) {
                 this.imagePreview = Preview
                     .Builder()
                     .build()
                     .also {
-                        it.setSurfaceProvider(viewFinder.createSurfaceProvider())
+                        it.setSurfaceProvider(viewFinder.surfaceProvider)
                     }
             }
 
@@ -219,11 +187,9 @@ class CameraActivity : AppCompatActivity() {
      */
     private fun takePicture() {
         CoroutineScope(Dispatchers.IO).launch {
-            println(imageCapture)
             // Don't take a picture if imageCapture have not been initialized
             if (imageCapture == null) return@launch
 
-            println("pass")
             // Get media folder
             val mediaFolder = File(
                 "${
@@ -256,15 +222,62 @@ class CameraActivity : AppCompatActivity() {
                 ContextCompat.getMainExecutor(this@CameraActivity),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        if (!NetworkState.isOnNetwork) {
+                            this@CameraActivity.goBack(takenImage)
+                            return
+                        }
+
                         Toast.makeText(
                             this@CameraActivity,
-                            resources.getString(R.string.cameraactivity_success_takepicture),
+                            resources.getString(R.string.cameraactivity_saving),
                             Toast.LENGTH_LONG
                         ).show()
-                        val returnIntent = Intent()
-                        returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, takenImage.path)
-                        setResult(Activity.RESULT_OK, returnIntent)
-                        finish()
+
+                        // Compress
+                        CoroutineScope(Dispatchers.IO).launch {
+                            Service.sendRequest(
+                                object : Callback {
+                                    override fun onFailure(call: Call, e: IOException) {
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            Toast.makeText(
+                                                this@CameraActivity,
+                                                this@CameraActivity.getString(R.string.cameraactivity_error_failcompress),
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    }
+
+                                    override fun onResponse(call: Call, response: Response) {
+                                        if (response.isSuccessful) {
+                                            if (response.code() == 200) {
+                                                val body =
+                                                    Utility.parseJSON(response.body()?.string())
+
+                                                Utility.saveImage(
+                                                    this@CameraActivity,
+                                                    body["dest"].toString()
+                                                ) {
+                                                    it?.copyTo(takenImage)
+                                                    goBack(takenImage)
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "http://api.resmush.it/ws.php?qlty=95",
+                                Service.HttpMethod.POST,
+                                MultipartBody.Builder().setType(MultipartBody.FORM)
+                                    .addFormDataPart(
+                                        "files",
+                                        Utility.getBasename(takenImage.path),
+                                        RequestBody.create(
+                                            MediaType.parse("application/octet-stream"),
+                                            takenImage,
+                                        )
+                                    )
+                                    .build(),
+                            )
+                        }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
@@ -280,29 +293,18 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Permission result from permission request.
-     * For this case, only use to check whether the application could be able to use camera or not.
-     *
-     * @param requestCode   Request code
-     * @param permissions   List of permission
-     * @param grantResults  List of granted permission
-     */
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSION_CODE && grantResults[0] == PackageManager.PERMISSION_DENIED) {
+    private fun goBack(image: File) {
+        CoroutineScope(Dispatchers.Main).launch {
             Toast.makeText(
                 this@CameraActivity,
-                resources.getString(R.string.cameraactivity_error_nopermission),
+                resources.getString(R.string.cameraactivity_success_takepicture),
                 Toast.LENGTH_LONG
             ).show()
+
+            val returnIntent = Intent()
+            returnIntent.putExtra(RESULT_IMAGE_PATH_KEY, image.path)
+            setResult(Activity.RESULT_OK, returnIntent)
             finish()
-        } else {
-            startCamera()
         }
     }
 }

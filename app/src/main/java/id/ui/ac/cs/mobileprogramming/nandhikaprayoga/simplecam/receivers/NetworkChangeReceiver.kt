@@ -6,14 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.widget.Toast
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.states.NetworkState
 
 class NetworkChangeReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        if (isOnline(context)) {
-            Toast.makeText(context, "Sync online is active", Toast.LENGTH_LONG).show()
-        } else {
-            Toast.makeText(context, "Unable to sync online for right now", Toast.LENGTH_LONG).show()
-        }
+        NetworkState.isOnNetwork = isOnline(context)
     }
 
     private fun isOnline(context: Context): Boolean {

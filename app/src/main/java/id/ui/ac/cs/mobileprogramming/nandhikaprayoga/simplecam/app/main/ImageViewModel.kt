@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.R
+import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.common.Utility
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.model.entities.image.Image
 import id.ui.ac.cs.mobileprogramming.nandhikaprayoga.simplecam.repositories.ImageRepository
 import java.text.SimpleDateFormat
@@ -13,10 +14,6 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class ImageViewModel(val app: Application) : AndroidViewModel(app) {
-    companion object {
-        private const val ACCESS_DATA_MAX_ITERATION = 10
-    }
-
     enum class DateType(val value: String) {
         TODAY("Today"),
         YESTERDAY("Yesterday"),
@@ -49,7 +46,14 @@ class ImageViewModel(val app: Application) : AndroidViewModel(app) {
             Locale.US,
         )
 
-        val groups: Map<String, List<Image>> = images.groupBy {
+        // Sort the images based on its timestamp in descending order
+        val timestamps = Array(images.size) { i -> images[i].createdAt.toDouble() }
+        val sortedIndexes = Utility.sort(timestamps)
+        val sortedImages = Array(images.size) {i -> images[sortedIndexes[i]]}
+        sortedImages.reverse()
+
+        // Begin to grouping
+        val groups: Map<String, List<Image>> = sortedImages.groupBy {
             dateFormatter.format(it.createdAt)
         }
 
